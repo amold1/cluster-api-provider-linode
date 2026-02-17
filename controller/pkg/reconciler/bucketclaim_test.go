@@ -55,6 +55,47 @@ func Test_determineBucketName(t *testing.T) {
 		assert.Equal(t, "bc-qwerty", n)
 	})
 
+	t.Run("dynamic with annotation override", func(t *testing.T) {
+		claim := baseClaim.DeepCopy()
+		claim.Spec.BucketClassName = "some-class"
+		claim.Annotations = map[string]string{
+			cosiapi.BucketClaimBucketNameAnnotation: "custom-bucket-name",
+		}
+
+		n, err := determineBucketName(claim)
+		assert.NoError(t, err)
+		assert.Equal(t, "custom-bucket-name", n)
+	})
+
+	t.Run("dynamic with annotation override and boundBucketName", func(t *testing.T) {
+		claim := baseClaim.DeepCopy()
+		claim.Spec.BucketClassName = "some-class"
+		claim.Annotations = map[string]string{
+			cosiapi.BucketClaimBucketNameAnnotation: "custom-bucket-name",
+		}
+		claim.Status.BoundBucketName = "custom-bucket-name"
+
+		n, err := determineBucketName(claim)
+		assert.NoError(t, err)
+		assert.Equal(t, "custom-bucket-name", n)
+	})
+
+	t.Run("dynamic with annotation override degraded provision", func(t *testing.T) {
+		claim := baseClaim.DeepCopy()
+		claim.Spec.BucketClassName = "some-class"
+		claim.Annotations = map[string]string{
+			cosiapi.BucketClaimBucketNameAnnotation: "custom-bucket-name",
+		}
+		claim.Status.BoundBucketName = "deliberately-unique"
+
+		n, err := determineBucketName(claim)
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "unrecoverable degradation")
+		assert.ErrorContains(t, err, "custom-bucket-name")
+		assert.ErrorContains(t, err, "deliberately-unique")
+		assert.Empty(t, n)
+	})
+
 	t.Run("dynamic subsequent provision", func(t *testing.T) {
 		claim := baseClaim.DeepCopy()
 		claim.Spec.BucketClassName = "some-class"

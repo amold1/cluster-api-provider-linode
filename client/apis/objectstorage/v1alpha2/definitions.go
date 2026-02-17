@@ -29,6 +29,10 @@ const (
 	// Bucket when its BucketClaim is being deleted.
 	BucketClaimBeingDeletedAnnotation = `objectstorage.k8.io/bucketclaim-being-deleted`
 
+	// BucketClaimBucketNameAnnotation : This annotation can be applied to a BucketClaim to
+	// explicitly set the Bucket name for dynamic provisioning.
+	BucketClaimBucketNameAnnotation = `objectstorage.k8s.io/bucket-name`
+
 	// HasBucketAccessReferencesAnnotation : This annotation is applied by the COSI Controller to a
 	// BucketClaim when a BucketAccess that references the BucketClaim is created. The annotation
 	// remains for as long as any BucketAccess references the BucketClaim. Once all BucketAccesses

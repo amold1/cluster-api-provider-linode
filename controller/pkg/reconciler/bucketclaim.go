@@ -256,10 +256,17 @@ func determineBucketName(claim *cosiapi.BucketClaim) (string, error) {
 		name = claim.Spec.ExistingBucketName
 	} else {
 		// Case: Dynamic provisioning
-		name = "bc-" + string(claim.UID) // DO NOT CHANGE UNLESS ABSOLUTELY NECESSARY
-		// ^ boundBucketName could become the source of truth to technically allow changing this.
-		// However, keeping this consistent will make it possible to recover from loss of binding info
-		// due to unexpected system issues without having to perform deeper system inspection.
+		if claim.Annotations != nil {
+			if overridden, ok := claim.Annotations[cosiapi.BucketClaimBucketNameAnnotation]; ok && overridden != "" {
+				name = overridden
+			}
+		}
+		if name == "" {
+			name = "bc-" + string(claim.UID) // DO NOT CHANGE UNLESS ABSOLUTELY NECESSARY
+			// ^ boundBucketName could become the source of truth to technically allow changing this.
+			// However, keeping this consistent will make it possible to recover from loss of binding info
+			// due to unexpected system issues without having to perform deeper system inspection.
+		}
 	}
 
 	if name == "" { // catch developer error
